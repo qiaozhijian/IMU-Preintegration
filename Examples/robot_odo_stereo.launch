@@ -1,0 +1,16 @@
+<launch>
+    <!--定义全局参数-->
+    <arg name="left_image" default="/cam0/image_raw"/>
+    <arg name="right_image" default="/cam1/image_raw"/>
+
+    <!--启动ORB-SLAM3 stereo respawn="true" 如果该节点启动不成功会再次尝试启动-->
+    <node name ="stereo_odo_node3" pkg="orb_slam3" type="stereo_odo_node3"
+        args="$(arg path_to_vacabulary) $(arg path_to_settings) true false" output="screen">
+        <remap from="/camera/left/image_raw" to="$(arg left_image)"/>
+        <remap from="/camera/right/image_raw" to="$(arg right_image)"/>
+    </node>
+
+        <arg name="bag" default=" $(find orb_slam3)/dataset/01/2020-07-26-19-47-34.bag"/>
+    <node pkg="rosbag" type="play" name="rosbag" args="--pause --clock $(arg bag)"/>
+
+</launch>
