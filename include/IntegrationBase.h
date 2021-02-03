@@ -2,8 +2,8 @@
 // Created by qzj on 2021/2/3.
 //
 
-#ifndef IMU_PREINTEGRATION_INTEGRATIONBASE_H
-#define IMU_PREINTEGRATION_INTEGRATIONBASE_H
+#ifndef imu_preintegration_INTEGRATIONBASE_H
+#define imu_preintegration_INTEGRATIONBASE_H
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -64,4 +64,4 @@ public:
     std::vector<Eigen::Vector3d> gyr_buf;
 };
 
-#endif //IMU_PREINTEGRATION_INTEGRATIONBASE_H
+#endif //imu_preintegration_INTEGRATIONBASE_H

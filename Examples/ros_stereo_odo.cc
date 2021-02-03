@@ -181,22 +181,15 @@ void ImageGrabber::SyncWithImu()
                     double t = mpImuGb->imuBuf.front()->header.stamp.toSec();
                     cv::Point3f acc(mpImuGb->imuBuf.front()->linear_acceleration.x, mpImuGb->imuBuf.front()->linear_acceleration.y, mpImuGb->imuBuf.front()->linear_acceleration.z);
                     cv::Point3f gyr(mpImuGb->imuBuf.front()->angular_velocity.x, mpImuGb->imuBuf.front()->angular_velocity.y, mpImuGb->imuBuf.front()->angular_velocity.z);
-
-                    cv::Point3f odometer(mpImuGb->imuBuf.front()->angular_velocity_covariance[0], mpImuGb->imuBuf.front()->angular_velocity_covariance[1],
-                                      mpImuGb->imuBuf.front()->angular_velocity_covariance[2]);
-                    cv::Point2f encoder(mpImuGb->imuBuf.front()->angular_velocity_covariance[4],
-                                     mpImuGb->imuBuf.front()->angular_velocity_covariance[5]);
-                    cv::Point3f rpy(mpImuGb->imuBuf.front()->angular_velocity_covariance[6], mpImuGb->imuBuf.front()->angular_velocity_covariance[7],
-                                 mpImuGb->imuBuf.front()->angular_velocity_covariance[8]);
-
                     vImuMeas.push_back(ORB_SLAM3::IMU::Point(acc,gyr,t));
                     mpImuGb->imuBuf.pop();
                 }
             }
             mpImuGb->mBufMutex.unlock();
-
             imuProcessor->preIntegrateIMU(tImLeft);
+            Eigen::Matrix4d Tprev_cur = imuProcessor->getPrediction();
             t3 = std::chrono::steady_clock::now();
+            imuProcessor->updateIMUBias();
             double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t3 - t1).count();
             vTimesTrack.push_back(ttrack);
             std::chrono::milliseconds tSleep(1);

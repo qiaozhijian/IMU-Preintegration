@@ -2,8 +2,8 @@
 // Created by qzj on 2021/2/3.
 //
 
-#ifndef IMU_PREINTEGRATION_IMAGEFRAME_H
-#define IMU_PREINTEGRATION_IMAGEFRAME_H
+#ifndef imu_preintegration_IMAGEFRAME_H
+#define imu_preintegration_IMAGEFRAME_H
 
 
 #include <Eigen/Core>
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif //IMU_PREINTEGRATION_IMAGEFRAME_H
+#endif //imu_preintegration_IMAGEFRAME_H

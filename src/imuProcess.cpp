@@ -154,6 +154,32 @@ namespace ORB_SLAM3 {
         //Vs[0] = Vector3d(5, 0, 0);
     }
 
+    Eigen::Matrix4d IMUProcess::getPrediction()
+    {
+//        R[frame_count] Tw_cur
+        Eigen::Matrix4d Tw_cur = Eigen::Matrix4d::Identity();
+        Tw_cur.block(0,0,3,3) = Rs[frame_count];
+        Tw_cur.block(0,3,3,1) = Ps[frame_count];
+        Eigen::Matrix4d Tprev_w = Eigen::Matrix4d::Identity();
+        if(frame_count!=0)
+        {
+            Tprev_w.block(0,0,3,3) = Rs[frame_count-1].transpose();
+            Tprev_w.block(0,3,3,1) = -Rs[frame_count-1].transpose()*Ps[frame_count-1];
+        }
+        Eigen::Matrix4d Tprev_cur = Tprev_w * Tw_cur;
+
+        Eigen::Matrix4d Tic = Eigen::Matrix4d::Identity();
+        Tic.block(0,0,3,3) = ric[0];
+        Tic.block(0,3,3,1) = tic[0];
+        Eigen::Matrix4d Tci = Eigen::Matrix4d::Identity();
+        Tci.block(0,0,3,3) = ric[0].transpose();
+        Tci.block(0,3,3,1) = -ric[0].transpose()*tic[0];
+
+        Tprev_cur = Tci * Tci * Tic;
+
+        return Tprev_cur;
+    }
+
     void IMUProcess::preIntegrateIMU(double img_t) {
         //printf("process measurments\n");
         vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
@@ -266,16 +292,18 @@ namespace ORB_SLAM3 {
 
         //frameCnt 为第一帧时不进行计算
         // 将结果放入到队列当中
-        if (frame_count == WINDOW_SIZE) {
-
-            if (getIsUpdateBias())
-                solveGyroscopeBias(all_image_frame, Bgs);
+        if (frame_count == WINDOW_SIZE ) {
+//            是否用相机的位姿对偏置进行估计
+//            updatePoseFromORB3(tic, ric);
+//            if(getIsUpdateBias())
+//                solveGyroscopeBias(all_image_frame, Bgs);
 
             // 对之前预积分得到的结果进行更新。
             // 预积分的好处查看就在于你得到新的Bgs，不需要又重新再积分一遍，可以通过Bgs对位姿，速度的一阶导数，进行线性近似，得到新的Bgs求解出MU的最终结果。
             for (int i = 0; i <= WINDOW_SIZE; i++) {
                 pre_integrations[i]->repropagate(Vector3d::Zero(), Bgs[i]);
             }
+            //updateLatestStates();
             //solver_flag = NON_LINEAR;
             slideWindow();
         }
@@ -290,6 +318,14 @@ namespace ORB_SLAM3 {
             Bas[frame_count] = Bas[prev_frame];
             Bgs[frame_count] = Bgs[prev_frame];
         }
+    }
+
+    void IMUProcess::updateIMUBias()
+    {
+        mProcess.lock();
+        processImage(curTime);
+        prevTime = curTime;
+        mProcess.unlock();
     }
 
     // 滑动窗口法

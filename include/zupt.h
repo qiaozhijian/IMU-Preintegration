@@ -2,8 +2,8 @@
 // Created by qzj on 2021/2/3.
 //
 
-#ifndef IMU_PREINTEGRATION_ZUPT_H
-#define IMU_PREINTEGRATION_ZUPT_H
+#ifndef imu_preintegration_ZUPT_H
+#define imu_preintegration_ZUPT_H
 
 #include <Eigen/Core>
 #include <thread>
@@ -58,4 +58,4 @@ public:
 };
 
 
-#endif //IMU_PREINTEGRATION_ZUPT_H
+#endif //imu_preintegration_ZUPT_H

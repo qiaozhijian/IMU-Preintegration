@@ -50,12 +50,16 @@ namespace ORB_SLAM3 {
 
         void slideWindow();
 
+        void updateIMUBias();
+
         void solveGyroscopeBias(map<double, ImageFrame> &all_image_frame, Eigen::Vector3d *Bgs);
 
         void updatePoseFromORB3(Eigen::Vector3d tic[], Eigen::Matrix3d ric[]);
 
         void processIMU(double t, double dt, const Eigen::Vector3d &linear_acceleration,
                         const Eigen::Vector3d &angular_velocity);
+
+        Eigen::Matrix4d getPrediction();
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

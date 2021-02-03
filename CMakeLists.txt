@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(IMU_Preintegration)
+project(imu_preintegration)
 
 IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
@@ -23,6 +23,8 @@ include(cmake/eigen.cmake)
 include(cmake/OpenCV.cmake)
 include(cmake/pangolin.cmake)
 
+catkin_package()
+
 include_directories(
         ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/include
@@ -30,7 +32,6 @@ include_directories(
 )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 file(GLOB_RECURSE ALL_SRCS "src/*.cpp" "src/*.cc")
 message(ALL_SRCS ${ALL_SRCS})
