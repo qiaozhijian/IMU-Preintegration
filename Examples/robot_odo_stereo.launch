@@ -2,9 +2,7 @@
 
     <!--启动ORB-SLAM3 stereo respawn="true" 如果该节点启动不成功会再次尝试启动-->
     <node name ="stereo_odo_node3" pkg="imu_preintegration" type="ros_stereo_odo_node" output="screen"></node>
+    <!-- <node name ="rviz" pkg="rviz" type="rviz" args="-d ></node> -->
 
-    <arg name="bag" default="/media/qzj/Dataset/slamDataSet/sweepRobot/round3/01/2020-07-26-19-47-34.bag"/>
-<!--    <node pkg="rosbag" type="play" name="rosbag" output="screen" args=" &#45;&#45;clock $(arg bag)"/>-->
-    <node pkg="rosbag" type="play" name="rosbag"  args=" --clock $(arg bag)"/>
 
 </launch>

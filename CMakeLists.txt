@@ -5,8 +5,8 @@ IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++11 -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++17 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -O3")
 
 find_package(catkin REQUIRED COMPONENTS
         rospy

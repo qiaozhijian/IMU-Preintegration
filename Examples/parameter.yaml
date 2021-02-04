@@ -5,14 +5,14 @@ Tbc: !!opencv-matrix
    rows: 4
    cols: 4
    dt: f
-   data: [-0.01078808,-0.0053516,-0.99992749,-0.0190819,0.99993588,0.0033851,-0.01080629,-0.04077015,0.00344269,-0.99997995,0.00531474,0.10690639,0.,0.,0.,1.]
+   data: [0.9997628,-0.02133212,0.0043912,0.02406096,0.02131338,0.99976372,0.0042708,0.00636725,-0.00448127,-0.00417619,0.99998124,-0.02710649,0.,0.,0.,1.]
 
 # IMU noise 连续的
 
 #imu parameters       The more accurate parameters you provide, the better performance
-IMU.NoiseGyro: 0.0014006108167209043   # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" ) 连续的
-IMU.NoiseAcc: 0.022705341628918071  
-IMU.GyroWalk: 0.000050477689654109284
-IMU.AccWalk: 0.00071342588229465884
-IMU.Frequency: 190
+IMU.NoiseGyro: 0.005   # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" ) 连续的
+IMU.NoiseAcc: 0.01   
+IMU.GyroWalk: 4e-06
+IMU.AccWalk: 0.0002
+IMU.Frequency: 165
 g_norm: 9.7964     # gravity magnitude

@@ -84,10 +84,10 @@ int main(int argc, char **argv)
     ImageGrabber igb(&imugb);
 
     // Maximum delay, 5 seconds
-    ros::Subscriber sub_imu = n.subscribe("/imu0", 1000, &ImuGrabber::GrabImu, &imugb);
-    ros::Subscriber sub_img_left = n.subscribe("/cam0/image_raw", 10, &ImageGrabber::GrabImageLeft,&igb);
+    ros::Subscriber sub_imu = n.subscribe("/camera/imu", 1000, &ImuGrabber::GrabImu, &imugb);
+    ros::Subscriber sub_img_left = n.subscribe("/camera/aligned_depth_to_color/image_raw", 10, &ImageGrabber::GrabImageLeft,&igb);
 
-    igb.pubIMUPrediction = n.advertise<nav_msgs::Odometry>("/imu_prediction", 5);
+    igb.pubIMUPrediction = n.advertise<nav_msgs::Odometry>("/imu/d_cam_pose", 5);
     std::thread sync_thread(&ImageGrabber::SyncWithImu, &igb);
 
     ros::spin();
@@ -130,6 +130,7 @@ void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
 //    Eigen::Vector3d eulerAngle=qua.matrix().eulerAngles(2,1,0)/M_PI*180.f;
 //    cout<<"eulerAngle: "<<eulerAngle(0)<<" "<<eulerAngle(1)<<" "<<eulerAngle(2)<<endl;
     pubIMUPrediction.publish(poseRos);
+    
 
 }
 
@@ -141,21 +142,26 @@ void ImageGrabber::SyncWithImu()
         double tImLeft = 0;
         if (!imgLeftBuf.empty() && !mpImuGb->imuBuf.empty())
         {
+            cout<<"++++"<<endl;
             tImLeft = imgLeftBuf.front()->header.stamp.toSec();
 
             // IMU值太少了,需要在相机之后依然有
             if(tImLeft>mpImuGb->imuBuf.back()->header.stamp.toSec())
+            {
+                cout<<"????"<<endl;
                 continue;
+            }  
 
             this->mBufMutexLeft.lock();
             imgLeftBuf.pop();
             this->mBufMutexLeft.unlock();
-
+            cout<<"!!!!"<<endl;
             //载入IMU数据
             vector<ORB_SLAM3::IMU::Point> vImuMeas;
             mpImuGb->mBufMutex.lock();
             if(!mpImuGb->imuBuf.empty())
             {
+                cout<<"0000"<<endl;
                 // Load imu measurements from buffer
                 vImuMeas.clear();
                 while(!mpImuGb->imuBuf.empty() && mpImuGb->imuBuf.front()->header.stamp.toSec()<=(tImLeft+0.01))
@@ -167,11 +173,13 @@ void ImageGrabber::SyncWithImu()
                     mpImuGb->imuBuf.pop();
                 }
             }
+            cout<<"1111"<<endl;
             mpImuGb->mBufMutex.unlock();
             imuProcessor->preIntegrateIMU(tImLeft);
             Eigen::Matrix4d Tprev_cur = imuProcessor->getPrediction();
             publishPose(Tprev_cur, tImLeft);
             imuProcessor->updateIMUBias();
+            cout<<"2222"<<endl;
         }
         std::chrono::milliseconds tSleep(1);
         std::this_thread::sleep_for(tSleep);
