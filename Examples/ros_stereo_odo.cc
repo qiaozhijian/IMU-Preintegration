@@ -128,7 +128,7 @@ void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
     poseRos.pose.pose.orientation.w = qua.w();
 
 //    Eigen::Vector3d eulerAngle=qua.matrix().eulerAngles(2,1,0)/M_PI*180.f;
-//    cout<<"eulerAngle: "<<eulerAngle(0)<<" "<<eulerAngle(1)<<" "<<eulerAngle(2)<<endl;
+//    //cout<<"eulerAngle: "<<eulerAngle(0)<<" "<<eulerAngle(1)<<" "<<eulerAngle(2)<<endl;
     pubIMUPrediction.publish(poseRos);
     
 
@@ -136,32 +136,32 @@ void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
 
 void ImageGrabber::SyncWithImu()
 {
-    cout<<"SyncWithImu start"<<endl;
+    //cout<<"SyncWithImu start"<<endl;
     while(1)
     {
         double tImLeft = 0;
         if (!imgLeftBuf.empty() && !mpImuGb->imuBuf.empty())
         {
-            cout<<"++++"<<endl;
+            //cout<<"++++"<<endl;
             tImLeft = imgLeftBuf.front()->header.stamp.toSec();
 
             // IMU值太少了,需要在相机之后依然有
             if(tImLeft>mpImuGb->imuBuf.back()->header.stamp.toSec())
             {
-                cout<<"????"<<endl;
+                //cout<<"????"<<endl;
                 continue;
             }  
 
             this->mBufMutexLeft.lock();
             imgLeftBuf.pop();
             this->mBufMutexLeft.unlock();
-            cout<<"!!!!"<<endl;
+            //cout<<"!!!!"<<endl;
             //载入IMU数据
             vector<ORB_SLAM3::IMU::Point> vImuMeas;
             mpImuGb->mBufMutex.lock();
             if(!mpImuGb->imuBuf.empty())
             {
-                cout<<"0000"<<endl;
+                //cout<<"0000"<<endl;
                 // Load imu measurements from buffer
                 vImuMeas.clear();
                 while(!mpImuGb->imuBuf.empty() && mpImuGb->imuBuf.front()->header.stamp.toSec()<=(tImLeft+0.01))
@@ -173,13 +173,13 @@ void ImageGrabber::SyncWithImu()
                     mpImuGb->imuBuf.pop();
                 }
             }
-            cout<<"1111"<<endl;
+            //cout<<"1111"<<endl;
             mpImuGb->mBufMutex.unlock();
             imuProcessor->preIntegrateIMU(tImLeft);
             Eigen::Matrix4d Tprev_cur = imuProcessor->getPrediction();
             publishPose(Tprev_cur, tImLeft);
             imuProcessor->updateIMUBias();
-            cout<<"2222"<<endl;
+            //cout<<"2222"<<endl;
         }
         std::chrono::milliseconds tSleep(1);
         std::this_thread::sleep_for(tSleep);

@@ -14,6 +14,7 @@
 
 class ImageFrame {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     ImageFrame() {};
 
     ImageFrame(double _t) : t{_t}, is_key_frame{false} {

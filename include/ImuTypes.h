@@ -211,6 +211,7 @@ namespace ORB_SLAM3 {
             }
 
         public:
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
             Preintegrated(const Bias &b_, const Calib &calib);
 
             Preintegrated(Preintegrated *pImuPre);
