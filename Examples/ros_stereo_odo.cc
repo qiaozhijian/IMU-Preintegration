@@ -105,8 +105,6 @@ void ImageGrabber::GrabImageLeft(const sensor_msgs::ImageConstPtr &img_msg)
 //    if (!imgLeftBuf.empty())
 //        imgLeftBuf.pop();
     imgLeftBuf.push(img_msg);
-    cout<<"imgLeftBuf.size: "<<imgLeftBuf.size()<<endl;
-    cout<<"imgLeftBuf: "<<!imgLeftBuf.empty()<<endl;
     mBufMutexLeft.unlock();
 }
 
