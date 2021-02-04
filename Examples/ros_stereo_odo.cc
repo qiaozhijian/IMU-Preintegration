@@ -117,6 +117,8 @@ void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
     Eigen::Quaterniond qua(rotMat);
 
     poseRos.header.stamp = ros::Time().fromSec(t);
+    poseRos.header.frame_id = "/map";
+    poseRos.child_frame_id = "/map";
     poseRos.pose.pose.position.x = transV(0);
     poseRos.pose.pose.position.y = transV(1);
     poseRos.pose.pose.position.z = transV(2);
@@ -125,6 +127,8 @@ void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
     poseRos.pose.pose.orientation.z = qua.z();
     poseRos.pose.pose.orientation.w = qua.w();
 
+//    Eigen::Vector3d eulerAngle=qua.matrix().eulerAngles(2,1,0)/M_PI*180.f;
+//    cout<<"eulerAngle: "<<eulerAngle(0)<<" "<<eulerAngle(1)<<" "<<eulerAngle(2)<<endl;
     pubIMUPrediction.publish(poseRos);
 
 }

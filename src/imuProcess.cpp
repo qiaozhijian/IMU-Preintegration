@@ -157,7 +157,6 @@ namespace ORB_SLAM3 {
     Eigen::Matrix4d IMUProcess::getPrediction()
     {
 //        R[frame_count] Tw_cur
-        cout<<"frame_count: "<<frame_count<<endl;
         Eigen::Matrix4d Tw_cur = Eigen::Matrix4d::Identity();
         Tw_cur.block(0,0,3,3) = Rs[frame_count];
         Tw_cur.block(0,3,3,1) = Ps[frame_count];
@@ -176,7 +175,7 @@ namespace ORB_SLAM3 {
         Tci.block(0,0,3,3) = ric[0].transpose();
         Tci.block(0,3,3,1) = -ric[0].transpose()*tic[0];
 
-        Tprev_cur = Tci * Tci * Tic;
+        Tprev_cur = Tci * Tprev_cur * Tic;
 
         return Tprev_cur;
     }
