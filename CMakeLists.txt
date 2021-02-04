@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
         message_filters
         cv_bridge
         tf
+        nav_msgs
         )
 
 set(ALL_TARGET_LIBRARIES "")
@@ -22,6 +23,7 @@ include(cmake/boost.cmake)
 include(cmake/eigen.cmake)
 include(cmake/OpenCV.cmake)
 include(cmake/pangolin.cmake)
+include(cmake/global_defination.cmake)
 
 catkin_package()
 

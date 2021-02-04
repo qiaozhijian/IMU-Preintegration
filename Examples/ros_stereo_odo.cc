@@ -25,12 +25,15 @@
 #include<thread>
 #include<mutex>
 #include<ros/ros.h>
+#include <ros/time.h>
 #include<cv_bridge/cv_bridge.h>
 #include<sensor_msgs/Imu.h>
 #include<opencv2/core/core.hpp>
 #include"ImuTypes.h"
 #include "parameters.h"
 #include "imuProcess.h"
+#include "global_defination.h"
+#include "nav_msgs/Odometry.h"
 
 std::shared_ptr<ORB_SLAM3::IMUProcess> imuProcessor;
 
@@ -51,20 +54,22 @@ public:
 class ImageGrabber
 {
 public:
-    ImageGrabber(ImuGrabber *pImuGb): mpImuGb(pImuGb){}
+    ImageGrabber(ImuGrabber *pImuGb): mpImuGb(pImuGb){
+    }
 
     void GrabImageLeft(const sensor_msgs::ImageConstPtr& msg);
-    cv::Mat GetImage(const sensor_msgs::ImageConstPtr &img_msg);
     void SyncWithImu();
+    void publishPose(Eigen::Matrix4d &pose, double t);
 
+public:
     queue<sensor_msgs::ImageConstPtr> imgLeftBuf;
     std::mutex mBufMutexLeft;
 
     ImuGrabber *mpImuGb;
 
+    ros::Publisher pubIMUPrediction;
 };
 
-vector<float> vTimesTrack;
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "stereo_odo_node3");
@@ -72,6 +77,7 @@ int main(int argc, char **argv)
     ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
 
     imuProcessor.reset(new ORB_SLAM3::IMUProcess());
+    readParameters(WORK_SPACE_PATH+"/Examples/parameter.yaml");
     imuProcessor->setParameter();
 
     ImuGrabber imugb;
@@ -79,8 +85,10 @@ int main(int argc, char **argv)
 
     // Maximum delay, 5 seconds
     ros::Subscriber sub_imu = n.subscribe("/imu0", 1000, &ImuGrabber::GrabImu, &imugb);
-    ros::Subscriber sub_img_left = n.subscribe("/camera/left/image_raw", 1, &ImageGrabber::GrabImageLeft,&igb);
-    std::thread sync_thread(&ImageGrabber::SyncWithImu,&igb);
+    ros::Subscriber sub_img_left = n.subscribe("/cam0/image_raw", 10, &ImageGrabber::GrabImageLeft,&igb);
+
+    igb.pubIMUPrediction = n.advertise<nav_msgs::Odometry>("/imu_prediction", 5);
+    std::thread sync_thread(&ImageGrabber::SyncWithImu, &igb);
 
     ros::spin();
 
@@ -94,68 +102,42 @@ void ImageGrabber::GrabImageLeft(const sensor_msgs::ImageConstPtr &img_msg)
     if(!IMUReady)
         return;
     mBufMutexLeft.lock();
-    if (!imgLeftBuf.empty())
-        imgLeftBuf.pop();
-    //img_msg->header.stamp = ;
+//    if (!imgLeftBuf.empty())
+//        imgLeftBuf.pop();
     imgLeftBuf.push(img_msg);
+    cout<<"imgLeftBuf.size: "<<imgLeftBuf.size()<<endl;
+    cout<<"imgLeftBuf: "<<!imgLeftBuf.empty()<<endl;
     mBufMutexLeft.unlock();
 }
 
-cv::Mat ImageGrabber::GetImage(const sensor_msgs::ImageConstPtr &img_msg)
-{
-    // Copy the ros image message to cv::Mat.
-    cv_bridge::CvImageConstPtr cv_ptr;
-    if(img_msg->encoding == sensor_msgs::image_encodings::BGR8)
-    {
-        try
-        {
-            cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::BGR8);
-        }
-        catch (cv_bridge::Exception& e)
-        {
-            ROS_ERROR("cv_bridge exception: %s", e.what());
-        }
-        if(cv_ptr->image.type()==16)
-        {
-            return cv_ptr->image.clone();
-        }
-        else
-        {
-            std::cout << "Error type" << std::endl;
-            return cv_ptr->image.clone();
-        }
-    }else if(img_msg->encoding == sensor_msgs::image_encodings::MONO8)
-    {
-        try
-        {
-            cv_ptr = cv_bridge::toCvShare(img_msg, sensor_msgs::image_encodings::MONO8);
-        }
-        catch (cv_bridge::Exception& e)
-        {
-            ROS_ERROR("cv_bridge exception: %s", e.what());
-        }
-        if(cv_ptr->image.type()==0)
-        {
-            return cv_ptr->image.clone();
-        }
-        else
-        {
-            std::cout << "Error type" << std::endl;
-            return cv_ptr->image.clone();
-        }
-    }
+void ImageGrabber::publishPose(Eigen::Matrix4d &pose, double t) {
+
+    nav_msgs::Odometry poseRos;
+    
+    Eigen::Vector3d transV(pose(0, 3), pose(1, 3), pose(2, 3));
+    Eigen::Matrix3d rotMat = pose.block(0, 0, 3, 3);
+    Eigen::Quaterniond qua(rotMat);
+
+    poseRos.header.stamp = ros::Time().fromSec(t);
+    poseRos.pose.pose.position.x = transV(0);
+    poseRos.pose.pose.position.y = transV(1);
+    poseRos.pose.pose.position.z = transV(2);
+    poseRos.pose.pose.orientation.x = qua.x();
+    poseRos.pose.pose.orientation.y = qua.y();
+    poseRos.pose.pose.orientation.z = qua.z();
+    poseRos.pose.pose.orientation.w = qua.w();
+
+    pubIMUPrediction.publish(poseRos);
+
 }
 
 void ImageGrabber::SyncWithImu()
 {
-    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
+    cout<<"SyncWithImu start"<<endl;
     while(1)
     {
-        cv::Mat imLeft;
         double tImLeft = 0;
-        if (!imgLeftBuf.empty()&&!mpImuGb->imuBuf.empty())
+        if (!imgLeftBuf.empty() && !mpImuGb->imuBuf.empty())
         {
             tImLeft = imgLeftBuf.front()->header.stamp.toSec();
 
@@ -164,11 +146,9 @@ void ImageGrabber::SyncWithImu()
                 continue;
 
             this->mBufMutexLeft.lock();
-            imLeft = GetImage(imgLeftBuf.front());
             imgLeftBuf.pop();
             this->mBufMutexLeft.unlock();
 
-            t1 = std::chrono::steady_clock::now();
             //载入IMU数据
             vector<ORB_SLAM3::IMU::Point> vImuMeas;
             mpImuGb->mBufMutex.lock();
@@ -188,15 +168,14 @@ void ImageGrabber::SyncWithImu()
             mpImuGb->mBufMutex.unlock();
             imuProcessor->preIntegrateIMU(tImLeft);
             Eigen::Matrix4d Tprev_cur = imuProcessor->getPrediction();
-            t3 = std::chrono::steady_clock::now();
+            publishPose(Tprev_cur, tImLeft);
             imuProcessor->updateIMUBias();
-            double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t3 - t1).count();
-            vTimesTrack.push_back(ttrack);
-            std::chrono::milliseconds tSleep(1);
-            std::this_thread::sleep_for(tSleep);
         }
+        std::chrono::milliseconds tSleep(1);
+        std::this_thread::sleep_for(tSleep);
     }
 }
+
 
 void ImuGrabber::GrabImu(const sensor_msgs::ImuConstPtr &imu_msg)
 {
@@ -212,8 +191,6 @@ void ImuGrabber::GrabImu(const sensor_msgs::ImuConstPtr &imu_msg)
     double rz = imu_msg->angular_velocity.z;
     Eigen::Vector3d acc(dx, dy, dz);
     Eigen::Vector3d gyr(rx, ry, rz);
-    cv::Point2f encoder(imu_msg->angular_velocity_covariance[4],
-                        imu_msg->angular_velocity_covariance[5]);
     imuProcessor->inputIMU(t, acc, gyr);
     imuCnt++;
     if(imuCnt>5)

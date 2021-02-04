@@ -54,10 +54,10 @@ namespace ORB_SLAM3 {
         mProcess.lock();//涉及到多线程，暂时不了解
         // 讲相机参数传入
         for (int i = 0; i < 2; i++) {
-            tic[i] = Vector3d::Zero();
-            ric[i] = Matrix3d::Identity();
+            tic[i] = TIC[0];
+            ric[i] = RIC[0];
         }
-        g = Eigen::Vector3d(0.0, 0.0, 9.8);//理想的中立加速度
+        g = G;//理想的中立加速度
         cout << "set g " << g.transpose() << endl;
         mProcess.unlock();
     }
