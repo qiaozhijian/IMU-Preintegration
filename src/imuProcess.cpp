@@ -148,6 +148,10 @@ namespace ORB_SLAM3 {
         Eigen::Matrix3d R0 = Utility::g2R(averAcc);
         double yaw = Utility::R2ypr(R0).x();
         R0 = Utility::ypr2R(Eigen::Vector3d{-yaw, 0, 0}) * R0;//另初始的航向为0
+
+//        试一下不用重力加速度对准
+        R0 = Eigen::Matrix3d::Identity();
+
         Rs[0] = R0;
         R_init = R0;
         cout << "init R0 " << endl << Rs[0] << endl;
