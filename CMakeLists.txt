@@ -5,8 +5,10 @@ IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++17 -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -O3")
+set(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++11 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3")
 
 find_package(catkin REQUIRED COMPONENTS
         rospy
@@ -19,10 +21,10 @@ find_package(catkin REQUIRED COMPONENTS
         )
 
 set(ALL_TARGET_LIBRARIES "")
-include(cmake/boost.cmake)
+#include(cmake/boost.cmake)
 include(cmake/eigen.cmake)
-include(cmake/OpenCV.cmake)
-include(cmake/pangolin.cmake)
+#include(cmake/OpenCV.cmake)
+#include(cmake/pangolin.cmake)
 include(cmake/global_defination.cmake)
 
 catkin_package()
